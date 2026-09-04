@@ -13,13 +13,12 @@
       "name": "boost-locale",
       "default-features": false
     },
-    "bullet3",
     "boost-phoenix",
     "boost-spirit",
     {
       "name": "catch2",
       "default-features": false,
-      "platform": "!ios"
+      "platform": "!ios & !android"
     },
     "minizip",
     "tinyxml2",

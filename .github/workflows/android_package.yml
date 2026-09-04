@@ -49,10 +49,18 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build
+          sudo apt-get install -y cmake ninja-build ccache
           flutter --version
           cmake --version | head -1
           ninja --version
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ github.ref }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
 
       - name: Install Android NDK
         run: |
@@ -77,6 +85,7 @@ jobs:
       - name: Build C++ engine + Flutter Android app
         run: |
           export VCPKG_BINARY_SOURCES="files,${HOME}/.cache/vcpkg,readwrite"
+          export CCACHE_DIR="${HOME}/.cache/ccache"
           ./build.sh android "$BUILD_TYPE"
 
       - name: Package APK

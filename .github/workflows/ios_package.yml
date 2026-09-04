@@ -43,11 +43,20 @@ jobs:
         # Xcode / CocoaPods / Python 已预装；cmake ninja 幂等安装；bison 用于生成 TJS2 parser
         # autoconf/automake/autoconf-archive/libtool/gettext/pkg-config：
         #   vcpkg 交叉编译 iOS 时需构建宿主工具（gperf→glib、libexif 等 autotools 端口）
+        # ccache：引擎 C++ 源码增量编译缓存（vcpkg 依赖缓存走下方的 vcpkg 二进制缓存）
         run: |
-          brew install cmake ninja bison autoconf automake autoconf-archive libtool gettext pkg-config
+          brew install cmake ninja bison autoconf automake autoconf-archive libtool gettext pkg-config ccache
           flutter --version
           cmake --version | head -1
           ninja --version
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache
+          key: ccache-${{ runner.os }}-${{ github.ref }}
+          restore-keys: |
+            ccache-${{ runner.os }}-
 
       - name: Cache vcpkg binary cache
         # vcpkg 二进制缓存：首次全量编译后，后续运行秒级还原依赖
@@ -61,6 +70,7 @@ jobs:
       - name: Build C++ engine + Flutter iOS app
         run: |
           export VCPKG_BINARY_SOURCES="files,${HOME}/.cache/vcpkg,readwrite"
+          export CCACHE_DIR="${HOME}/.cache/ccache"
           ./build.sh ios "$BUILD_TYPE"
 
       - name: Package .app
