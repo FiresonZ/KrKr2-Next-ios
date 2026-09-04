@@ -43,6 +43,12 @@ void AdditiveAlphaBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len
         3, 3, 3, 3,    7, 7, 7, 7,
         11, 11, 11, 11, 15, 15, 15, 15
     );
+    // Scalar reference does NOT scale the dest alpha byte; result alpha = src_a
+    const auto rgb_mask = hn::Dup128VecFromValues(
+        d8,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00
+    );
 
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
@@ -63,6 +69,8 @@ void AdditiveAlphaBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len
         auto ds_lo = hn::ShiftRight<8>(hn::Mul(d_lo, ia_lo));
         auto ds_hi = hn::ShiftRight<8>(hn::Mul(d_hi, ia_hi));
         auto d_scaled = hn::OrderedDemote2To(d8, ds_lo, ds_hi);
+        // Zero the alpha byte of d_scaled to match scalar (result alpha = src_a)
+        d_scaled = hn::And(d_scaled, rgb_mask);
 
         // Saturated add: result = sat_add(d_scaled, src)
         auto result = hn::SaturatedAdd(d_scaled, vs);
@@ -150,6 +158,12 @@ void AdditiveAlphaBlend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
         3, 3, 3, 3,    7, 7, 7, 7,
         11, 11, 11, 11, 15, 15, 15, 15
     );
+    // Scalar reference does NOT scale the dest alpha byte; result alpha = scaled src_a
+    const auto rgb_mask = hn::Dup128VecFromValues(
+        d8,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00
+    );
 
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
@@ -175,6 +189,8 @@ void AdditiveAlphaBlend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
         auto ds_lo = hn::ShiftRight<8>(hn::Mul(d_lo, ia_lo));
         auto ds_hi = hn::ShiftRight<8>(hn::Mul(d_hi, ia_hi));
         auto d_scaled = hn::OrderedDemote2To(d8, ds_lo, ds_hi);
+        // Zero the alpha byte of d_scaled to match scalar (result alpha = scaled src_a)
+        d_scaled = hn::And(d_scaled, rgb_mask);
 
         auto result = hn::SaturatedAdd(d_scaled, vs_scaled);
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));

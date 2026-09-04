@@ -131,6 +131,11 @@ void Ps##Name##Blend_HWY(tjs_uint32 *dest, const tjs_uint32 *src,            \
                           tjs_int len) {                                       \
     const hn::ScalableTag<uint8_t> d8;                                        \
     const size_t N_PIXELS = hn::Lanes(d8) / 4;                               \
+    const auto rgb_mask = hn::Dup128VecFromValues(                            \
+        d8,                                                                    \
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,                      \
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00                       \
+    );                                                                         \
     tjs_int i = 0;                                                            \
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {        \
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));   \
@@ -138,6 +143,8 @@ void Ps##Name##Blend_HWY(tjs_uint32 *dest, const tjs_uint32 *src,            \
         auto va = ExtractAlpha(d8, vs);                                       \
         auto vs_blended = [&]() { blend_core_body }();                        \
         auto result = PsApplyAlpha(d8, vd, vs_blended, va);                   \
+        /* scalar NORM writes alpha = 0 */                                    \
+        result = hn::And(result, rgb_mask);                                   \
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));         \
     }                                                                          \
     for (; i < len; i++) {                                                    \
@@ -153,6 +160,11 @@ void Ps##Name##Blend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,          \
     const hn::Repartition<uint16_t, decltype(d8)> d16;                        \
     const size_t N_PIXELS = hn::Lanes(d8) / 4;                               \
     const auto vopa16 = hn::Set(d16, static_cast<uint16_t>(opa));             \
+    const auto rgb_mask = hn::Dup128VecFromValues(                            \
+        d8,                                                                    \
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,                      \
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00                       \
+    );                                                                         \
     tjs_int i = 0;                                                            \
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {        \
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));   \
@@ -160,6 +172,8 @@ void Ps##Name##Blend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,          \
         auto va = ScaleAlpha(d8, ExtractAlpha(d8, vs), vopa16);               \
         auto vs_blended = [&]() { blend_core_body }();                        \
         auto result = PsApplyAlpha(d8, vd, vs_blended, va);                   \
+        /* scalar _o writes alpha = 0 */                                      \
+        result = hn::And(result, rgb_mask);                                   \
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));         \
     }                                                                          \
     for (; i < len; i++) {                                                    \
@@ -333,6 +347,11 @@ void PsScreenBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
     const hn::ScalableTag<uint8_t> d8;
     const hn::Repartition<uint16_t, decltype(d8)> d16;
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
+    const auto rgb_mask = hn::Dup128VecFromValues(
+        d8,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00
+    );
 
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
@@ -370,6 +389,8 @@ void PsScreenBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
         auto r_hi = hn::Add(d_hi, hn::ShiftRight<8>(hn::Mul(se_hi, a_hi)));
 
         auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
+        /* scalar NORM writes alpha = 0 */
+        result = hn::And(result, rgb_mask);
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
 
