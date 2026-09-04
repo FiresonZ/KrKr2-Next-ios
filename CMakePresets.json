@@ -111,6 +111,38 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "Linux Config",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "BUILD_TOOLS": true,
+        "ENABLE_TESTS": true
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    },
+    {
+      "name": "Linux Debug Config",
+      "inherits": "Linux Config",
+      "binaryDir": "${sourceDir}/out/linux/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Linux Release Config",
+      "inherits": "Linux Config",
+      "binaryDir": "${sourceDir}/out/linux/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
@@ -137,6 +169,14 @@
     {
       "name": "Android Release Build",
       "configurePreset": "Android Release Config"
+    },
+    {
+      "name": "Linux Debug Build",
+      "configurePreset": "Linux Debug Config"
+    },
+    {
+      "name": "Linux Release Build",
+      "configurePreset": "Linux Release Config"
     }
   ]
 }
