@@ -48,6 +48,19 @@ C++ Engine (cpp/core, TJS2) ──engine_api C ABI──> Dart FFI (flutter_engi
 
 > Android / Linux / Windows have been removed from the repository.
 
+## System Requirements (iOS)
+
+| Item | Requirement |
+|------|-------------|
+| OS version | **iOS / iPadOS 15.0 or later** |
+| Architecture | 64-bit (**arm64**) only |
+| Devices | iPhone 6s or later; iPad Air 2 / iPad mini 4 or later; iPod touch (7th gen) |
+| Chip | A8 / A9 or later (i.e. all 64-bit devices that support iOS 15) |
+
+> The whole build/run chain (engine static library, vcpkg deps, Flutter) is configured for
+> `arm64` with deployment target `iOS 15.0` — see `CMakePresets.json`,
+> `vcpkg/triplets/arm64-ios.cmake` and `ios/Podfile`.
+
 ## Build
 
 ```bash
@@ -56,6 +69,21 @@ C++ Engine (cpp/core, TJS2) ──engine_api C ABI──> Dart FFI (flutter_engi
 ```
 
 See [docs/dev/build.md](docs/dev/build.md) and [build.sh](build.sh).
+
+## CI Packaging (GitHub Actions)
+
+An online packaging workflow is included: [ios_package.yml](.github/workflows/ios_package.yml).
+
+- **Trigger**:
+  - Manual: Actions → *iOS 打包* → Run workflow (choose debug / release)
+  - Automatic: push a `v*` tag (e.g. `v1.0.0`)
+- **Artifact**: `KrKr2-Next-iOS-<release|debug>.zip` (unsigned `Runner.app`, kept for 14 days)
+- **Install on device**: download the zip → extract `Runner.app` → sign with your own Apple
+  developer certificate (recommended: open `apps/flutter_app/ios/Runner.xcworkspace` in Xcode,
+  set your Team, then run), or use `flutter run -d <device>` for development.
+- **First build**: vcpkg must fully compile the `arm64-ios` dependencies
+  (FFmpeg/OpenCV/ANGLE, etc.), which takes a while; vcpkg binary caching is enabled,
+  so subsequent runs restore dependencies quickly.
 
 ## Development Progress
 

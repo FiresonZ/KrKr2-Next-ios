@@ -48,6 +48,18 @@ C++ 引擎 (cpp/core, TJS2) ──engine_api C ABI──> Dart FFI (flutter_engi
 
 > Android / Linux / Windows 已从仓库移除。
 
+## 系统要求（iOS）
+
+| 项 | 要求 |
+|----|------|
+| 系统版本 | **iOS / iPadOS 15.0 及以上** |
+| 架构 | 仅 64 位（**arm64**） |
+| 设备 | iPhone 6s 及以上；iPad Air 2 / iPad mini 4 及以上；iPod touch（第 7 代） |
+| 芯片 | A8 / A9 及以上（即所有支持 iOS 15 的 64 位设备） |
+
+> 构建与运行链路（引擎静态库、vcpkg 依赖、Flutter）均按 `arm64`、部署目标 `iOS 15.0` 配置，
+> 见 `CMakePresets.json`、`vcpkg/triplets/arm64-ios.cmake` 与 `ios/Podfile`。
+
 ## 构建
 
 ```bash
@@ -56,6 +68,20 @@ C++ 引擎 (cpp/core, TJS2) ──engine_api C ABI──> Dart FFI (flutter_engi
 ```
 
 详见 [docs/dev/build.md](docs/dev/build.md) 与 [build.sh](build.sh)。
+
+## CI 打包（GitHub Actions）
+
+仓库内置在线打包工作流 [ios_package.yml](.github/workflows/ios_package.yml)：
+
+- **触发方式**：
+  - 手动：Actions → *iOS 打包* → Run workflow（可选 debug / release）
+  - 自动：推送 `v*` 标签（如 `v1.0.0`）
+- **产物**：`KrKr2-Next-iOS-<release|debug>.zip`（未签名的 `Runner.app`，保留 14 天）
+- **安装到真机**：下载 zip → 解压出 `Runner.app` → 用自己的 Apple 开发者证书签名
+  （推荐用 Xcode 打开 `apps/flutter_app/ios/Runner.xcworkspace` 配置 Team 后运行），
+  或用 `flutter run -d <device>` 开发调试。
+- **首次构建**：vcpkg 需全量编译 `arm64-ios` 依赖（FFmpeg/OpenCV/ANGLE 等），耗时较长；
+  已启用 vcpkg 二进制缓存，后续运行秒级还原。
 
 ## 开发进度
 
