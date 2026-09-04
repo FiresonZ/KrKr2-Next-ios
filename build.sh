@@ -7,20 +7,18 @@
 #   ./build.sh                          # Interactive platform selection
 #
 # Platforms:
-#   android, ios, macos
+#   ios, macos
 #
 # Options:
 #   debug|release       Build type (default: debug)
-#   --abi=<abis>        Android only: target ABIs (default: arm64-v8a)
 #   --jobs=<N>          Parallel build jobs (default: 8)
 #   --clean             Clean build artifacts before building
 #   --help, -h          Show this help message
 #
 # Examples:
-#   ./build.sh android debug --abi=arm64-v8a
 #   ./build.sh ios release
 #   ./build.sh macos debug --jobs=16
-#   ./build.sh --clean android release
+#   ./build.sh --clean ios debug
 #
 
 set -euo pipefail
@@ -47,23 +45,19 @@ show_help() {
     echo "  ./build.sh                          # Interactive platform selection"
     echo ""
     echo "Platforms:"
-    echo "  android    Build Android APK (Flutter + native engine)"
     echo "  ios        Build iOS app (C++ static lib + Flutter)"
     echo "  macos      Build macOS app (C++ dylib + Flutter)"
     echo ""
     echo "Options:"
     echo "  debug|release       Build type (default: debug)"
-    echo "  --abi=<abis>        Android only: comma-separated ABIs"
-    echo "                      (arm64-v8a, armeabi-v7a, x86_64, x86)"
     echo "  --jobs=<N>          Parallel build jobs (default: 8)"
     echo "  --clean             Clean build artifacts before building"
     echo "  --help, -h          Show this help message"
     echo ""
     echo "Examples:"
-    echo "  ./build.sh android debug --abi=arm64-v8a"
     echo "  ./build.sh ios release"
     echo "  ./build.sh macos debug --jobs=16"
-    echo "  ./build.sh --clean android release"
+    echo "  ./build.sh --clean ios debug"
     echo ""
 }
 
@@ -87,14 +81,11 @@ for arg in "$@"; do
         --jobs=*)
             export JOBS="${arg#*=}"
             ;;
-        android|ios|macos)
+        ios|macos)
             PLATFORM="$arg"
             ;;
         debug|release|Debug|Release)
             BUILD_TYPE="$(echo "$arg" | tr '[:upper:]' '[:lower:]')"
-            ;;
-        --abi=*)
-            EXTRA_ARGS+=("$arg")
             ;;
         *)
             echo -e "${YELLOW}[WARN]${NC} Unknown argument: $arg (passing through)"
@@ -114,15 +105,13 @@ if [[ -z "$PLATFORM" ]]; then
     echo ""
     echo "Select target platform:"
     echo ""
-    echo "  1) android"
-    echo "  2) ios"
-    echo "  3) macos"
+    echo "  1) ios"
+    echo "  2) macos"
     echo ""
-    read -rp "Enter choice [1-3]: " choice
+    read -rp "Enter choice [1-2]: " choice
     case "$choice" in
-        1|android)  PLATFORM="android" ;;
-        2|ios)      PLATFORM="ios" ;;
-        3|macos)    PLATFORM="macos" ;;
+        1|ios)      PLATFORM="ios" ;;
+        2|macos)    PLATFORM="macos" ;;
         *)
             echo -e "${RED}[ERROR]${NC} Invalid choice: $choice"
             exit 1
@@ -152,11 +141,6 @@ fi
 if [[ "$CLEAN" == true ]]; then
     echo -e "${CYAN}Cleaning build artifacts for $PLATFORM...${NC}"
     case "$PLATFORM" in
-        android)
-            rm -rf "$SCRIPT_DIR/apps/flutter_app/build/app"
-            rm -rf "$SCRIPT_DIR/apps/flutter_app/build/.cxx"
-            echo -e "${GREEN}[INFO]${NC} Android build artifacts cleaned."
-            ;;
         ios)
             rm -rf "$SCRIPT_DIR/out/ios/$BUILD_TYPE"
             rm -rf "$SCRIPT_DIR/apps/flutter_app/build/ios"

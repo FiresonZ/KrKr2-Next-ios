@@ -6,7 +6,7 @@
     "7zip",
     {
       "name": "argparse",
-      "platform": "linux | windows | osx"
+      "platform": "osx"
     },
     "boost-iostreams",
     {
@@ -17,14 +17,9 @@
     "boost-phoenix",
     "boost-spirit",
     {
-      "name": "breakpad",
-      "default-features": false,
-      "platform": "android"
-    },
-    {
       "name": "catch2",
       "default-features": false,
-      "platform": "!android & !ios"
+      "platform": "!ios"
     },
     "minizip",
     "tinyxml2",
@@ -36,43 +31,20 @@
       ],
       "platform": "osx | ios"
     },
-    {
-      "name": "angle",
-      "default-features": false,
-      "features": [
-        "vulkan"
-      ],
-      "platform": "linux | windows | android"
-    },
-    {
-      "name": "dirent",
-      "platform": "windows"
-    },
     "ffmpeg",
     "fmt",
     "jxrlib",
     "libarchive",
     "libxml2",
-    {
-      "name": "libgdiplus",
-      "platform": "!windows"
-    },
+    "libgdiplus",
     "libjpeg-turbo",
     {
-      "name": "libogg",
-      "platform": "android"
-    },
-    {
       "name": "libpng",
-      "platform": "!linux"
+      "platform": "osx | ios"
     },
     "libvorbis",
     "libwebp",
     "lz4",
-    {
-      "name": "oboe",
-      "platform": "android"
-    },
     "oniguruma",
     "openal-soft",
     {
@@ -84,10 +56,6 @@
           "platform": "!ios"
         }
       ]
-    },
-    {
-      "name": "opus",
-      "platform": "android"
     },
     {
       "name": "opusfile",

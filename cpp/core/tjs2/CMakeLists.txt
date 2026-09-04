@@ -13,10 +13,6 @@ endif()
 
 set(GEN_CODE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/gen)
 
-if(WINDOWS)
-    target_compile_options(${PROJECT_NAME} PRIVATE "/FS")
-endif()
-
 if(NOT EXISTS ${GEN_CODE_BINARY_DIR})
     file(MAKE_DIRECTORY ${GEN_CODE_BINARY_DIR})
 endif()
