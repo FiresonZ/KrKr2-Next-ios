@@ -38,13 +38,9 @@ target_sources(${PROJECT_NAME} PUBLIC
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${KRKR2CORE_PATH}/
     ${KRKR2CORE_PATH}/base
-    ${KRKR2CORE_PATH}/base/win32
     ${KRKR2CORE_PATH}/environ
     ${KRKR2CORE_PATH}/environ/win32
-    ${KRKR2CORE_PATH}/environ/android
     ${KRKR2CORE_PATH}/environ/sdl
-    ${KRKR2CORE_PATH}/msg
-    ${KRKR2CORE_PATH}/msg/win32
     ${KRKR2CORE_PATH}/extension
     ${KRKR2CORE_PATH}/sound
     ${KRKR2CORE_PATH}/sound/win32
@@ -52,9 +48,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${KRKR2CORE_PATH}/utils
     ${KRKR2CORE_PATH}/utils/win32
     ${KRKR2CORE_PATH}/visual
-    ${KRKR2CORE_PATH}/visual/ARM
-    ${KRKR2CORE_PATH}/visual/win32
-    ${KRKR2CORE_PATH}/visual/RenderScript/rs
 )
 
 add_definitions(-D__STDC_CONSTANT_MACROS -DTJS_TEXT_OUT_CRLF)
@@ -96,14 +89,9 @@ if(unofficial-angle_FOUND)
         target_include_directories(CubismFramework PRIVATE
             ${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include)
     endif()
-elseif(ANDROID)
-    target_link_libraries(CubismFramework PRIVATE EGL GLESv2)
 endif()
 
-if(ANDROID)
-    set(CUBISM_CORE_ARCH ${CMAKE_ANDROID_ARCH_ABI})
-    set(CUBISM_CORE_LIB ${CUBISM_CORE_DIR}/lib/android/${CUBISM_CORE_ARCH}/libLive2DCubismCore.a)
-elseif(IOS)
+if(IOS)
     set(CUBISM_CORE_LIB ${CUBISM_CORE_DIR}/lib/ios/Release-iphoneos/libLive2DCubismCore.a)
 elseif(APPLE)
     if(CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")

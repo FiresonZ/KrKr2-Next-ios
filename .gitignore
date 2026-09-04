@@ -1,7 +1,4 @@
 # build target
-/**/cmake-build-android/
-/**/cmake-build-android-release/
-/**/cmake-build-android-debug/
 /**/build/
 /**/out/
 /**/bin/

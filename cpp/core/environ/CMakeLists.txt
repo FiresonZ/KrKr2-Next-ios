@@ -14,14 +14,6 @@ set(ENVIRON_SOURCE_FILES
     ${ENVIRON_PATH}/EngineLoop.cpp
     ${ENVIRON_PATH}/XP3ArchiveRepack.cpp
 
-    $<$<BOOL:${ANDROID}>:${ENVIRON_PATH}/android/AndroidUtils.cpp>
-    $<$<BOOL:${ANDROID}>:${ENVIRON_PATH}/android/KrkrJniHelper.cpp>
-    $<$<BOOL:${ANDROID}>:${ENVIRON_PATH}/linux/Platform.cpp>
-    
-    $<$<BOOL:${LINUX}>:${ENVIRON_PATH}/linux/Platform.cpp>
-
-    $<$<BOOL:${WINDOWS}>:${ENVIRON_PATH}/win32/Platform.cpp>
-
     $<$<BOOL:${MACOS}>:${ENVIRON_PATH}/apple/macos/platform.mm>
 
     $<$<BOOL:${IOS}>:${ENVIRON_PATH}/apple/ios/platform.mm>
@@ -43,7 +35,6 @@ set(ENVIRON_SOURCE_FILES
 set(ENVIRON_HEADERS_DIR
     ${ENVIRON_PATH}/
     ${ENVIRON_PATH}/win32
-    $<$<BOOL:${ANDROID}>:${ENVIRON_PATH}/android>
     ${ENVIRON_PATH}/sdl
 )
 
