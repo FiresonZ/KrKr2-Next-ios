@@ -41,8 +41,9 @@ jobs:
 
       - name: Install build dependencies
         # Xcode / CocoaPods / Python 已预装；cmake ninja 幂等安装；bison 用于生成 TJS2 parser
+        # autoconf/automake/autoconf-archive：vcpkg 交叉编译 iOS 时需构建宿主工具（如 gperf→glib）
         run: |
-          brew install cmake ninja bison
+          brew install cmake ninja bison autoconf automake autoconf-archive
           flutter --version
           cmake --version | head -1
           ninja --version
