@@ -6,6 +6,14 @@ if(IOS)
     add_library(engine_api STATIC
         src/engine_api.cpp
     )
+elseif(ANDROID)
+    # Android: build as a self-contained shared library. Everything the engine
+    # needs (core + plugins + vcpkg static deps) is linked into libengine_api.so
+    # so the APK only has to ship one native library, loaded via dart:ffi.
+    add_library(engine_api SHARED
+        src/engine_api.cpp
+        src/engine_api_android_jni.cpp
+    )
 else()
     add_library(engine_api SHARED
         src/engine_api.cpp
@@ -28,7 +36,18 @@ target_include_directories(engine_api
 
 if(TARGET krkr2core AND TARGET krkr2plugin)
     target_compile_definitions(engine_api PRIVATE ENGINE_API_USE_KRKR2_RUNTIME)
-    target_link_libraries(engine_api PRIVATE krkr2core krkr2plugin)
+    if(ANDROID)
+        # Keep every object from the engine static libraries (global
+        # constructors, TJS native bindings, plugin registration) — mirrors
+        # the -force_load used on iOS.
+        target_link_libraries(engine_api PRIVATE
+            "-Wl,--whole-archive" krkr2core krkr2plugin "-Wl,--no-whole-archive"
+        )
+        # ANativeWindow (libandroid) + __android_log_print (liblog)
+        target_link_libraries(engine_api PRIVATE android log)
+    else()
+        target_link_libraries(engine_api PRIVATE krkr2core krkr2plugin)
+    endif()
 endif()
 
 # On Apple platforms, ANGLE GL symbols conflict with system OpenGL.framework.

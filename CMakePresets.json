@@ -76,6 +76,41 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "Android Config",
+      "generator": "Ninja",
+      "hidden": true,
+      "cacheVariables": {
+        "ANDROID": true,
+        "CMAKE_SYSTEM_NAME": "Android",
+        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a",
+        "CMAKE_ANDROID_API": "24",
+        "CMAKE_ANDROID_NDK": "$env{ANDROID_NDK_HOME}",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_COMPILER": "clang++",
+        "VCPKG_TARGET_TRIPLET": "arm64-android",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/vcpkg/triplets",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "BUILD_TOOLS": false,
+        "ENABLE_TESTS": false
+      }
+    },
+    {
+      "name": "Android Debug Config",
+      "inherits": "Android Config",
+      "binaryDir": "${sourceDir}/out/android/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Android Release Config",
+      "inherits": "Android Config",
+      "binaryDir": "${sourceDir}/out/android/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
@@ -94,6 +129,14 @@
     {
       "name": "iOS Release Build",
       "configurePreset": "iOS Release Config"
+    },
+    {
+      "name": "Android Debug Build",
+      "configurePreset": "Android Debug Config"
+    },
+    {
+      "name": "Android Release Build",
+      "configurePreset": "Android Release Config"
     }
   ]
 }

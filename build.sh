@@ -7,7 +7,7 @@
 #   ./build.sh                          # Interactive platform selection
 #
 # Platforms:
-#   ios, macos
+#   ios, android, macos
 #
 # Options:
 #   debug|release       Build type (default: debug)
@@ -17,7 +17,7 @@
 #
 # Examples:
 #   ./build.sh ios release
-#   ./build.sh macos debug --jobs=16
+#   ./build.sh android debug --jobs=16
 #   ./build.sh --clean ios debug
 #
 
@@ -46,6 +46,7 @@ show_help() {
     echo ""
     echo "Platforms:"
     echo "  ios        Build iOS app (C++ static lib + Flutter)"
+    echo "  android    Build Android app (C++ shared lib + Flutter APK)"
     echo "  macos      Build macOS app (C++ dylib + Flutter)"
     echo ""
     echo "Options:"
@@ -81,7 +82,7 @@ for arg in "$@"; do
         --jobs=*)
             export JOBS="${arg#*=}"
             ;;
-        ios|macos)
+        ios|android|macos)
             PLATFORM="$arg"
             ;;
         debug|release|Debug|Release)
@@ -106,12 +107,14 @@ if [[ -z "$PLATFORM" ]]; then
     echo "Select target platform:"
     echo ""
     echo "  1) ios"
-    echo "  2) macos"
+    echo "  2) android"
+    echo "  3) macos"
     echo ""
-    read -rp "Enter choice [1-2]: " choice
+    read -rp "Enter choice [1-3]: " choice
     case "$choice" in
         1|ios)      PLATFORM="ios" ;;
-        2|macos)    PLATFORM="macos" ;;
+        2|android)  PLATFORM="android" ;;
+        3|macos)    PLATFORM="macos" ;;
         *)
             echo -e "${RED}[ERROR]${NC} Invalid choice: $choice"
             exit 1
@@ -145,6 +148,11 @@ if [[ "$CLEAN" == true ]]; then
             rm -rf "$SCRIPT_DIR/out/ios/$BUILD_TYPE"
             rm -rf "$SCRIPT_DIR/apps/flutter_app/build/ios"
             echo -e "${GREEN}[INFO]${NC} iOS build artifacts cleaned."
+            ;;
+        android)
+            rm -rf "$SCRIPT_DIR/out/android/$BUILD_TYPE"
+            rm -rf "$SCRIPT_DIR/apps/flutter_app/build/app"
+            echo -e "${GREEN}[INFO]${NC} Android build artifacts cleaned."
             ;;
         macos)
             rm -rf "$SCRIPT_DIR/out/macos/$BUILD_TYPE"

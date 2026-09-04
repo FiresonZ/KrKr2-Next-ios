@@ -31,6 +31,14 @@
       ],
       "platform": "osx | ios"
     },
+    {
+      "name": "angle",
+      "default-features": false,
+      "features": [
+        "vulkan"
+      ],
+      "platform": "android"
+    },
     "ffmpeg",
     "fmt",
     "jxrlib",
@@ -40,7 +48,7 @@
     "libjpeg-turbo",
     {
       "name": "libpng",
-      "platform": "osx | ios"
+      "platform": "osx | ios | android"
     },
     "libvorbis",
     "libwebp",

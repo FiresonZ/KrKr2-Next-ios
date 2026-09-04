@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KrKr2 Next — 面向 iOS 的 KiriKiri2 运行环境</title>
-  <meta name="description" content="KrKr2 Next：基于 Flutter 与 ANGLE(Metal) 重构的 KiriKiri2 视觉小说引擎运行环境，专注 iOS（macOS 开发目标）。">
+  <title>KrKr2 Next — 面向移动端的 KiriKiri2 运行环境</title>
+  <meta name="description" content="KrKr2 Next：基于 Flutter 与 ANGLE(Metal/Vulkan) 重构的 KiriKiri2 视觉小说引擎运行环境，专注移动端 iOS + Android（macOS 开发目标）。">
   <style>
     :root {
       --bg: #0f1117;
@@ -112,13 +112,13 @@
 <header>
   <div class="wrap">
     <div class="logo"><span class="dot">◆</span> KrKr2 Next</div>
-    <p class="tagline">面向 iOS 的 KiriKiri2（吉里吉里2）视觉小说引擎运行环境 · C++ 引擎 + Flutter 壳</p>
+    <p class="tagline">面向移动端的 KiriKiri2（吉里吉里2）视觉小说引擎运行环境 · C++ 引擎 + Flutter 壳</p>
     <div class="badges">
       <span class="badge"><i>●</i> In Development</span>
-      <span class="badge"><i>●</i> iOS · macOS</span>
+      <span class="badge"><i>●</i> iOS · Android · macOS</span>
       <span class="badge"><i>●</i> KiriKiri2</span>
       <span class="badge"><i>●</i> Flutter</span>
-      <span class="badge"><i>●</i> ANGLE (Metal)</span>
+      <span class="badge"><i>●</i> ANGLE (Metal · Vulkan)</span>
       <span class="badge"><i>●</i> GPL-3.0</span>
     </div>
     <div class="cta">
@@ -133,7 +133,7 @@
 
   <section id="about">
     <h2>关于本项目</h2>
-    <p class="sub">基于上游 krkr2 重构的独立项目，专注 Apple 平台。</p>
+    <p class="sub">基于上游 krkr2 重构的独立项目，专注移动端（iOS + Android）。</p>
     <div class="cards">
       <div class="card">
         <span class="ico">🎮</span>
@@ -143,12 +143,12 @@
       <div class="card">
         <span class="ico">⚡</span>
         <h3>零拷贝渲染</h3>
-        <p>ANGLE (Metal) 离屏渲染，经 IOSurface 零拷贝直达 Flutter 纹理，低功耗告别卡顿。</p>
+        <p>ANGLE 离屏渲染（iOS/macOS Metal 后端、Android Vulkan 后端），经 IOSurface / SurfaceTexture 零拷贝直达 Flutter 纹理，低功耗告别卡顿。</p>
       </div>
       <div class="card">
         <span class="ico">📱</span>
-        <h3>iOS 优先</h3>
-        <p>iOS 为主目标，macOS 作为开发/调试平台。Android / Linux / Windows 已移除。</p>
+        <h3>移动优先</h3>
+        <p>iOS 与 Android 为主目标，macOS 保留为 Apple 开发/调试平台。无 Mac 也能在 Windows 上构建 Android APK。</p>
       </div>
     </div>
   </section>
@@ -169,6 +169,13 @@
           <td>静态库链接进 Runner</td>
         </tr>
         <tr>
+          <td>Android</td>
+          <td class="s-wip">🚧 主目标 · 开发中</td>
+          <td>Vulkan</td>
+          <td>SurfaceTexture</td>
+          <td>libengine_api.so 打包进 APK</td>
+        </tr>
+        <tr>
           <td>macOS</td>
           <td class="s-ok">✅ 开发目标</td>
           <td>Metal</td>
@@ -181,9 +188,10 @@
 
   <section id="build">
     <h2>快速开始</h2>
-    <p class="sub">在 macOS 上构建（需要 Xcode、CMake、Ninja、Flutter）。</p>
-    <pre><code>$ ./build.sh ios release   <span class="cmt"># 构建 iOS</span>
-$ ./build.sh macos debug   <span class="cmt"># 构建 macOS（开发）</span></code></pre>
+    <p class="sub">iOS 在 macOS 上构建；Android 可在 Windows / macOS / Linux 上构建（需 NDK）。</p>
+    <pre><code>$ ./build.sh ios release     <span class="cmt"># 构建 iOS（macOS + Xcode）</span>
+$ ./build.sh android debug   <span class="cmt"># 构建 Android APK（任意主机）</span>
+$ ./build.sh macos debug     <span class="cmt"># 构建 macOS（开发）</span></code></pre>
   </section>
 
   <section id="links">
