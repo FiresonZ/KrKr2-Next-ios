@@ -3,6 +3,10 @@
 > 本目录面向 **AI Agent 与开发者**，用于快速掌握项目技术栈、架构与关键位置，
 > 避免每次从头扫描整个代码库浪费上下文与 token。
 > 请保持本目录内容与代码库现状同步；平台结构调整后务必更新。
+>
+> **新 AI Agent 上手顺序**：根目录 [AGENTS.md](../../AGENTS.md)（首屏指令）→ 本文档（索引）
+> → [conventions.md](conventions.md)（约定与陷阱，最重要）→ [key-references.md](key-references.md)（关键文件/符号）。
+> 本项目有大批量代码由 AI Agent 编写，请沿用本目录的文档约定并保持同步。
 
 ## 项目一句话
 
@@ -10,7 +14,8 @@
 C++ 引擎（TVP/TJS2）离屏渲染 → IOSurface / SurfaceTexture 零拷贝 → Flutter 纹理显示，
 Flutter 壳应用提供 UI。当前**面向移动端**（iOS + Android 为主目标，macOS 为 Apple 开发目标）。
 
-- 上游：<https://github.com/2468785842/krkr2>（本项目为重构版，作为新项目引用上游）
+- 项目主页：<https://github.com/reAAAq/KrKr2-Next>（独立新项目，基于上游重构）
+- 上游：<https://github.com/2468785842/krkr2>（本项目为重构版，仅引用上游）
 - 许可证：GPL-3.0
 
 ## 目录索引

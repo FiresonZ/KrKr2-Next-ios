@@ -16,7 +16,13 @@
 
 **Language / 语言**: [中文](README.md) | English
 
-> 🙏 This project is a refactor based on [krkr2](https://github.com/2468785842/krkr2). It is developed as a new project referencing that upstream. Thanks to the original author.
+> 🙏 This project, **KrKr2 Next** (<https://github.com/reAAAq/KrKr2-Next>), is a refactor based on
+> [krkr2](https://github.com/2468785842/krkr2). It is developed as an independent new project
+> referencing that upstream only. Thanks to the original author.
+
+> 🤖 **AI-agent collaboration note**: a large portion of this project's code was written by AI agents.
+> A new AI agent should start by reading [AGENTS.md](AGENTS.md) (first-screen instructions) and
+> [docs/dev/](docs/dev/README.md) (quick-reference docs) before touching any code.
 
 ## Overview
 
@@ -131,8 +137,10 @@ so subsequent runs restore dependencies quickly.
 
 ## Related Docs
 
+- AI-agent first-screen instructions: [AGENTS.md](AGENTS.md)
 - Development docs (AI-agent quick reference): [docs/dev/](docs/dev/README.md)
-- Upstream project: <https://github.com/2468785842/krkr2>
+- Project home: <https://github.com/reAAAq/KrKr2-Next>
+- Upstream project (refactor source): <https://github.com/2468785842/krkr2>
 
 ## License
 
