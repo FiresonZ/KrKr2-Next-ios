@@ -6,20 +6,19 @@
     "7zip",
     {
       "name": "argparse",
-      "platform": "osx"
+      "platform": "osx | linux"
     },
     "boost-iostreams",
     {
       "name": "boost-locale",
       "default-features": false
     },
-    "bullet3",
     "boost-phoenix",
     "boost-spirit",
     {
       "name": "catch2",
       "default-features": false,
-      "platform": "!ios"
+      "platform": "!ios & !android"
     },
     "minizip",
     "tinyxml2",
@@ -31,6 +30,14 @@
       ],
       "platform": "osx | ios"
     },
+    {
+      "name": "angle",
+      "default-features": false,
+      "features": [
+        "vulkan"
+      ],
+      "platform": "android | linux"
+    },
     "ffmpeg",
     "fmt",
     "jxrlib",
@@ -40,7 +47,7 @@
     "libjpeg-turbo",
     {
       "name": "libpng",
-      "platform": "osx | ios"
+      "platform": "osx | ios | android"
     },
     "libvorbis",
     "libwebp",

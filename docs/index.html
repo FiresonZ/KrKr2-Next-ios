@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KrKr2 Next — 面向 iOS 的 KiriKiri2 运行环境</title>
-  <meta name="description" content="KrKr2 Next：基于 Flutter 与 ANGLE(Metal) 重构的 KiriKiri2 视觉小说引擎运行环境，专注 iOS（macOS 开发目标）。">
+  <title>KrKr2 Next — 面向移动端的 KiriKiri2 运行环境</title>
+  <meta name="description" content="KrKr2 Next：基于 Flutter 与 ANGLE(Metal/Vulkan) 重构的 KiriKiri2 视觉小说引擎运行环境，专注移动端 iOS + Android（macOS 开发目标）。">
   <style>
     :root {
       --bg: #0f1117;
@@ -112,19 +112,19 @@
 <header>
   <div class="wrap">
     <div class="logo"><span class="dot">◆</span> KrKr2 Next</div>
-    <p class="tagline">面向 iOS 的 KiriKiri2（吉里吉里2）视觉小说引擎运行环境 · C++ 引擎 + Flutter 壳</p>
+    <p class="tagline">面向移动端的 KiriKiri2（吉里吉里2）视觉小说引擎运行环境 · C++ 引擎 + Flutter 壳</p>
     <div class="badges">
       <span class="badge"><i>●</i> In Development</span>
-      <span class="badge"><i>●</i> iOS · macOS</span>
+      <span class="badge"><i>●</i> iOS · Android · macOS</span>
       <span class="badge"><i>●</i> KiriKiri2</span>
       <span class="badge"><i>●</i> Flutter</span>
-      <span class="badge"><i>●</i> ANGLE (Metal)</span>
+      <span class="badge"><i>●</i> ANGLE (Metal · Vulkan)</span>
       <span class="badge"><i>●</i> GPL-3.0</span>
     </div>
     <div class="cta">
-      <a class="btn btn-primary" href="https://github.com/2468785842/krkr2" target="_blank" rel="noopener">上游项目</a>
-      <a class="btn btn-ghost" href="https://github.com/FiresonZ/KrKr2-Next-ios#readme" target="_blank" rel="noopener">README</a>
-      <a class="btn btn-ghost" href="https://github.com/FiresonZ/KrKr2-Next-ios/tree/main/docs/dev" target="_blank" rel="noopener">开发文档</a>
+      <a class="btn btn-primary" href="https://github.com/reAAAq/KrKr2-Next" target="_blank" rel="noopener">直接上游</a>
+      <a class="btn btn-ghost" href="https://github.com/FiresonZ/KrKr2-Next-Mobile#readme" target="_blank" rel="noopener">README</a>
+      <a class="btn btn-ghost" href="https://github.com/FiresonZ/KrKr2-Next-Mobile/tree/main/docs/dev" target="_blank" rel="noopener">开发文档</a>
     </div>
   </div>
 </header>
@@ -133,7 +133,7 @@
 
   <section id="about">
     <h2>关于本项目</h2>
-    <p class="sub">基于上游 krkr2 重构的独立项目，专注 Apple 平台。</p>
+    <p class="sub">基于上游 krkr2 重构的独立项目，专注移动端（iOS + Android）。</p>
     <div class="cards">
       <div class="card">
         <span class="ico">🎮</span>
@@ -143,12 +143,12 @@
       <div class="card">
         <span class="ico">⚡</span>
         <h3>零拷贝渲染</h3>
-        <p>ANGLE (Metal) 离屏渲染，经 IOSurface 零拷贝直达 Flutter 纹理，低功耗告别卡顿。</p>
+        <p>ANGLE 离屏渲染（iOS/macOS Metal 后端、Android Vulkan 后端），经 IOSurface / SurfaceTexture 零拷贝直达 Flutter 纹理，低功耗告别卡顿。</p>
       </div>
       <div class="card">
         <span class="ico">📱</span>
-        <h3>iOS 优先</h3>
-        <p>iOS 为主目标，macOS 作为开发/调试平台。Android / Linux / Windows 已移除。</p>
+        <h3>移动优先</h3>
+        <p>iOS 与 Android 为主目标，macOS 保留为 Apple 开发/调试平台。无 Mac 也能在 Windows 上构建 Android APK。</p>
       </div>
     </div>
   </section>
@@ -169,6 +169,13 @@
           <td>静态库链接进 Runner</td>
         </tr>
         <tr>
+          <td>Android</td>
+          <td class="s-wip">🚧 主目标 · 开发中</td>
+          <td>Vulkan</td>
+          <td>SurfaceTexture</td>
+          <td>libengine_api.so 打包进 APK</td>
+        </tr>
+        <tr>
           <td>macOS</td>
           <td class="s-ok">✅ 开发目标</td>
           <td>Metal</td>
@@ -181,28 +188,33 @@
 
   <section id="build">
     <h2>快速开始</h2>
-    <p class="sub">在 macOS 上构建（需要 Xcode、CMake、Ninja、Flutter）。</p>
-    <pre><code>$ ./build.sh ios release   <span class="cmt"># 构建 iOS</span>
-$ ./build.sh macos debug   <span class="cmt"># 构建 macOS（开发）</span></code></pre>
+    <p class="sub">iOS 在 macOS 上构建；Android 可在 Windows / macOS / Linux 上构建（需 NDK）。</p>
+    <pre><code>$ ./build.sh ios release     <span class="cmt"># 构建 iOS（macOS + Xcode）</span>
+$ ./build.sh android debug   <span class="cmt"># 构建 Android APK（任意主机）</span>
+$ ./build.sh macos debug     <span class="cmt"># 构建 macOS（开发）</span></code></pre>
   </section>
 
   <section id="links">
     <h2>相关链接</h2>
     <p class="sub">文档与源码入口。</p>
     <div class="links">
-      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-ios#readme" target="_blank" rel="noopener">
+      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-Mobile#readme" target="_blank" rel="noopener">
         <span class="t">📘 README</span>
-        <span class="d">项目简介、架构、平台与进度</span>
+        <span class="d">项目简介、架构、平台与进度（本 fork）</span>
       </a>
-      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-ios/tree/main/docs/dev" target="_blank" rel="noopener">
+      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-Mobile/tree/main/docs/dev" target="_blank" rel="noopener">
         <span class="t">🧭 开发文档</span>
         <span class="d">技术栈 / 架构 / 关键引用 / 构建 / 约定陷阱（AI Agent 速查）</span>
       </a>
-      <a class="link-card" href="https://github.com/2468785842/krkr2" target="_blank" rel="noopener">
-        <span class="t">⬆ 上游项目</span>
-        <span class="d">krkr2 · 本项目的上游来源</span>
+      <a class="link-card" href="https://github.com/reAAAq/KrKr2-Next" target="_blank" rel="noopener">
+        <span class="t">⬆ 直接上游</span>
+        <span class="d">KrKr2-Next · 本 fork 的来源</span>
       </a>
-      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-ios/blob/main/LICENSE" target="_blank" rel="noopener">
+      <a class="link-card" href="https://github.com/2468785842/krkr2" target="_blank" rel="noopener">
+        <span class="t">⬆ 代码来源</span>
+        <span class="d">krkr2 · KrKr2-Next 的源代码重构基础</span>
+      </a>
+      <a class="link-card" href="https://github.com/FiresonZ/KrKr2-Next-Mobile/blob/main/LICENSE" target="_blank" rel="noopener">
         <span class="t">📄 许可证</span>
         <span class="d">GNU General Public License v3.0</span>
       </a>
@@ -213,8 +225,9 @@ $ ./build.sh macos debug   <span class="cmt"># 构建 macOS（开发）</span></
 
 <footer>
   <div class="wrap">
-    KrKr2 Next · 独立项目，引用上游 <a href="https://github.com/2468785842/krkr2" target="_blank" rel="noopener">krkr2</a> ·
-    以 <a href="https://github.com/FiresonZ/KrKr2-Next-ios/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a> 协议开源
+    KrKr2 Next Mobile · fork 自 <a href="https://github.com/reAAAq/KrKr2-Next" target="_blank" rel="noopener">KrKr2-Next</a>，
+    其基于 <a href="https://github.com/2468785842/krkr2" target="_blank" rel="noopener">krkr2</a> 源代码重构 ·
+    以 <a href="https://github.com/FiresonZ/KrKr2-Next-Mobile/blob/main/LICENSE" target="_blank" rel="noopener">GPL-3.0</a> 协议开源
   </div>
 </footer>
 

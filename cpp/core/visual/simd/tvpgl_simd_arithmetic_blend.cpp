@@ -160,13 +160,26 @@ void AddBlend_HDA_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
 
 void SubBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
     const hn::ScalableTag<uint8_t> d8;
+    const hn::Repartition<uint16_t, decltype(d8)> d16;
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
+    const auto v255 = hn::Set(d16, static_cast<uint16_t>(255));
 
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));
         auto vd = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(dest + i));
-        auto result = hn::SaturatedSub(vd, vs);
+
+        // scalar TVPSubBlend_c: per byte result = max(s + d - 255, 0)
+        const auto half = hn::Half<decltype(d8)>();
+        auto sum_lo = hn::Add(hn::PromoteTo(d16, hn::LowerHalf(half, vs)),
+                              hn::PromoteTo(d16, hn::LowerHalf(half, vd)));
+        auto sum_hi = hn::Add(hn::PromoteUpperTo(d16, vs),
+                              hn::PromoteUpperTo(d16, vd));
+        auto r_lo = hn::IfThenElse(hn::Gt(sum_lo, v255), hn::Sub(sum_lo, v255),
+                                   hn::Zero(d16));
+        auto r_hi = hn::IfThenElse(hn::Gt(sum_hi, v255), hn::Sub(sum_hi, v255),
+                                   hn::Zero(d16));
+        auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
 
@@ -180,7 +193,9 @@ void SubBlend_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
 
 void SubBlend_HDA_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
     const hn::ScalableTag<uint8_t> d8;
+    const hn::Repartition<uint16_t, decltype(d8)> d16;
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
+    const auto v255 = hn::Set(d16, static_cast<uint16_t>(255));
     const auto alpha_mask = hn::Dup128VecFromValues(
         d8,
         0, 0, 0, 0xFF,  0, 0, 0, 0xFF,
@@ -191,7 +206,18 @@ void SubBlend_HDA_HWY(tjs_uint32 *dest, const tjs_uint32 *src, tjs_int len) {
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));
         auto vd = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(dest + i));
-        auto result = hn::SaturatedSub(vd, vs);
+
+        // scalar TVPSubBlend_c: per byte result = max(s + d - 255, 0)
+        const auto half = hn::Half<decltype(d8)>();
+        auto sum_lo = hn::Add(hn::PromoteTo(d16, hn::LowerHalf(half, vs)),
+                              hn::PromoteTo(d16, hn::LowerHalf(half, vd)));
+        auto sum_hi = hn::Add(hn::PromoteUpperTo(d16, vs),
+                              hn::PromoteUpperTo(d16, vd));
+        auto r_lo = hn::IfThenElse(hn::Gt(sum_lo, v255), hn::Sub(sum_lo, v255),
+                                   hn::Zero(d16));
+        auto r_hi = hn::IfThenElse(hn::Gt(sum_hi, v255), hn::Sub(sum_hi, v255),
+                                   hn::Zero(d16));
+        auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
         result = hn::Or(hn::AndNot(alpha_mask, result), hn::And(alpha_mask, vd));
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
@@ -210,20 +236,29 @@ void SubBlend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
     const hn::Repartition<uint16_t, decltype(d8)> d16;
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
     const auto vopa16 = hn::Set(d16, static_cast<uint16_t>(opa));
+    const auto v255 = hn::Set(d16, static_cast<uint16_t>(255));
 
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));
         auto vd = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(dest + i));
 
-        // Scale: s = ~(~s * opa >> 8)  (original uses inverted scaling)
+        // scalar: s = ~((~src * opa) >> 8); result = max(s + d - 255, 0)
         auto vs_inv = hn::Not(vs);
         const auto half = hn::Half<decltype(d8)>();
         auto si_lo = hn::ShiftRight<8>(hn::Mul(hn::PromoteTo(d16, hn::LowerHalf(half, vs_inv)), vopa16));
         auto si_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs_inv), vopa16));
         auto vs_scaled = hn::Not(hn::OrderedDemote2To(d8, si_lo, si_hi));
 
-        auto result = hn::SaturatedSub(vd, vs_scaled);
+        auto sum_lo = hn::Add(hn::PromoteTo(d16, hn::LowerHalf(half, vs_scaled)),
+                              hn::PromoteTo(d16, hn::LowerHalf(half, vd)));
+        auto sum_hi = hn::Add(hn::PromoteUpperTo(d16, vs_scaled),
+                              hn::PromoteUpperTo(d16, vd));
+        auto r_lo = hn::IfThenElse(hn::Gt(sum_lo, v255), hn::Sub(sum_lo, v255),
+                                   hn::Zero(d16));
+        auto r_hi = hn::IfThenElse(hn::Gt(sum_hi, v255), hn::Sub(sum_hi, v255),
+                                   hn::Zero(d16));
+        auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
 
@@ -244,6 +279,7 @@ void SubBlend_HDA_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
     const hn::Repartition<uint16_t, decltype(d8)> d16;
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
     const auto vopa16 = hn::Set(d16, static_cast<uint16_t>(opa));
+    const auto v255 = hn::Set(d16, static_cast<uint16_t>(255));
     const auto alpha_mask = hn::Dup128VecFromValues(
         d8,
         0, 0, 0, 0xFF,  0, 0, 0, 0xFF,
@@ -261,7 +297,15 @@ void SubBlend_HDA_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
         auto si_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs_inv), vopa16));
         auto vs_scaled = hn::Not(hn::OrderedDemote2To(d8, si_lo, si_hi));
 
-        auto result = hn::SaturatedSub(vd, vs_scaled);
+        auto sum_lo = hn::Add(hn::PromoteTo(d16, hn::LowerHalf(half, vs_scaled)),
+                              hn::PromoteTo(d16, hn::LowerHalf(half, vd)));
+        auto sum_hi = hn::Add(hn::PromoteUpperTo(d16, vs_scaled),
+                              hn::PromoteUpperTo(d16, vd));
+        auto r_lo = hn::IfThenElse(hn::Gt(sum_lo, v255), hn::Sub(sum_lo, v255),
+                                   hn::Zero(d16));
+        auto r_hi = hn::IfThenElse(hn::Gt(sum_hi, v255), hn::Sub(sum_hi, v255),
+                                   hn::Zero(d16));
+        auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
         result = hn::Or(hn::AndNot(alpha_mask, result), hn::And(alpha_mask, vd));
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
@@ -532,33 +576,37 @@ void ScreenBlend_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
     const size_t N_PIXELS = hn::Lanes(d8) / 4;
     const auto vopa16 = hn::Set(d16, static_cast<uint16_t>(opa));
 
+    const auto rgb_mask = hn::Dup128VecFromValues(
+        d8,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00,
+        0xFF, 0xFF, 0xFF, 0x00,  0xFF, 0xFF, 0xFF, 0x00
+    );
+
     tjs_int i = 0;
     for (; i + static_cast<tjs_int>(N_PIXELS) <= len; i += N_PIXELS) {
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));
         auto vd = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(dest + i));
 
-        // Scale src inverted: s_scaled = ~(~s * opa >> 8)
-        auto vs_inv = hn::Not(vs);
+        // scalar TVPScreenBlend_o_c: result = ((~d) * ~((s*opa)>>8)) >> 8, alpha = 0
         const auto half = hn::Half<decltype(d8)>();
-        auto si_lo = hn::ShiftRight<8>(hn::Mul(hn::PromoteTo(d16, hn::LowerHalf(half, vs_inv)), vopa16));
-        auto si_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs_inv), vopa16));
-        auto vs_scaled_inv = hn::OrderedDemote2To(d8, si_lo, si_hi); // This is ~s_scaled
+        auto s_lo = hn::ShiftRight<8>(hn::Mul(hn::PromoteTo(d16, hn::LowerHalf(half, vs)), vopa16));
+        auto s_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs), vopa16));
+        auto s_scaled = hn::OrderedDemote2To(d8, s_lo, s_hi);   // (s*opa)>>8
+        auto s_inv = hn::Not(s_scaled);                          // ~((s*opa)>>8)
 
-        // screen = ~( ~d * ~s_scaled >> 8 ) = ~( ~d * vs_scaled_inv >> 8 )
         auto vdi = hn::Not(vd);
         auto di_lo = hn::PromoteTo(d16, hn::LowerHalf(half, vdi));
         auto di_hi = hn::PromoteUpperTo(d16, vdi);
-        auto vsi_lo = hn::PromoteTo(d16, hn::LowerHalf(half, vs_scaled_inv));
-        auto vsi_hi = hn::PromoteUpperTo(d16, vs_scaled_inv);
+        auto si_lo = hn::PromoteTo(d16, hn::LowerHalf(half, s_inv));
+        auto si_hi = hn::PromoteUpperTo(d16, s_inv);
 
-        auto r_lo = hn::ShiftRight<8>(hn::Mul(di_lo, vsi_lo));
-        auto r_hi = hn::ShiftRight<8>(hn::Mul(di_hi, vsi_hi));
+        auto r_lo = hn::ShiftRight<8>(hn::Mul(di_lo, si_lo));
+        auto r_hi = hn::ShiftRight<8>(hn::Mul(di_hi, si_hi));
 
-        // Note: the scalar version returns tmp (not ~tmp) because
-        // it uses d=~d and s=~(... opacity ...) so the final negation
-        // cancels out to return the complement.
-        // Here: result = ~(~d * ~s_scaled >> 8)
-        auto result = hn::Not(hn::OrderedDemote2To(d8, r_lo, r_hi));
+        // Note: unlike HDA_o, the non-HDA scalar returns tmp (NOT ~tmp),
+        // and writes alpha = 0.
+        auto result = hn::OrderedDemote2To(d8, r_lo, r_hi);
+        result = hn::And(result, rgb_mask);
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
     }
 
@@ -590,23 +638,24 @@ void ScreenBlend_HDA_o_HWY(tjs_uint32 *dest, const tjs_uint32 *src,
         auto vs = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(src + i));
         auto vd = hn::LoadU(d8, reinterpret_cast<const uint8_t*>(dest + i));
 
-        auto vs_inv = hn::Not(vs);
+        // scalar TVPScreenBlend_HDA_o_c:
+        //   result = ~((~d) * ~((s*opa)>>8) >> 8), alpha = dest alpha
         const auto half = hn::Half<decltype(d8)>();
-        auto si_lo = hn::ShiftRight<8>(hn::Mul(hn::PromoteTo(d16, hn::LowerHalf(half, vs_inv)), vopa16));
-        auto si_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs_inv), vopa16));
-        auto vs_scaled_inv = hn::OrderedDemote2To(d8, si_lo, si_hi);
+        auto s_lo = hn::ShiftRight<8>(hn::Mul(hn::PromoteTo(d16, hn::LowerHalf(half, vs)), vopa16));
+        auto s_hi = hn::ShiftRight<8>(hn::Mul(hn::PromoteUpperTo(d16, vs), vopa16));
+        auto s_scaled = hn::OrderedDemote2To(d8, s_lo, s_hi);   // (s*opa)>>8
+        auto s_inv = hn::Not(s_scaled);                          // ~((s*opa)>>8)
 
         auto vdi = hn::Not(vd);
         auto di_lo = hn::PromoteTo(d16, hn::LowerHalf(half, vdi));
         auto di_hi = hn::PromoteUpperTo(d16, vdi);
-        auto vsi_lo = hn::PromoteTo(d16, hn::LowerHalf(half, vs_scaled_inv));
-        auto vsi_hi = hn::PromoteUpperTo(d16, vs_scaled_inv);
+        auto si_lo = hn::PromoteTo(d16, hn::LowerHalf(half, s_inv));
+        auto si_hi = hn::PromoteUpperTo(d16, s_inv);
 
-        auto r_lo = hn::ShiftRight<8>(hn::Mul(di_lo, vsi_lo));
-        auto r_hi = hn::ShiftRight<8>(hn::Mul(di_hi, vsi_hi));
+        auto r_lo = hn::ShiftRight<8>(hn::Mul(di_lo, si_lo));
+        auto r_hi = hn::ShiftRight<8>(hn::Mul(di_hi, si_hi));
 
-        // screen_blend_HDA_o_func returns: ~tmp ^ (d & 0xff000000)
-        // which is: (~(~d*~s>>8)) with dest alpha XOR'd
+        // HDA_o keeps the outer negation (unlike non-HDA _o)
         auto result = hn::Not(hn::OrderedDemote2To(d8, r_lo, r_hi));
         result = hn::Or(hn::AndNot(alpha_mask, result), hn::And(alpha_mask, vd));
         hn::StoreU(result, d8, reinterpret_cast<uint8_t*>(dest + i));
