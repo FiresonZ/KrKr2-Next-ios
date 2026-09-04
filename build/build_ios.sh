@@ -36,6 +36,11 @@ CMAKE_CONFIG_PRESET="iOS ${BUILD_TYPE_CAP} Config"
 CMAKE_BUILD_PRESET="iOS ${BUILD_TYPE_CAP} Build"
 CMAKE_BUILD_DIR="$PROJECT_ROOT/out/ios/$BUILD_TYPE_LOWER"
 
+# Apple's system libtool is required for merging static libraries (-static).
+# Homebrew's GNU libtool (installed as a vcpkg autotools host tool) shadows
+# PATH's `libtool` and does not support -static archives.
+SYSTEM_LIBTOOL="/usr/bin/libtool"
+
 if [[ -d "$PROJECT_ROOT/.devtools/flutter" ]]; then
     FLUTTER_SDK="$PROJECT_ROOT/.devtools/flutter"
     FLUTTER_BIN="$FLUTTER_SDK/bin/flutter"
@@ -183,7 +188,7 @@ MERGE_TMPDIR=$(mktemp -d)
 trap "rm -rf '$MERGE_TMPDIR'" EXIT
 
 # First, merge all project libs normally
-libtool -static -o "$MERGE_TMPDIR/libengine_project_base.a" "${PROJECT_LIBS[@]}"
+"$SYSTEM_LIBTOOL" -static -o "$MERGE_TMPDIR/libengine_project_base.a" "${PROJECT_LIBS[@]}"
 
 # Build a set of .o names already in the project library
 ar t "$MERGE_TMPDIR/libengine_project_base.a" | sort -u > "$MERGE_TMPDIR/project_objs.txt"
@@ -207,7 +212,7 @@ done < <(find "$CMAKE_BUILD_DIR/cpp/plugins" -mindepth 3 -name "*.a" -print0 2>/
 if [[ ${#PSDPARSE_UNIQUE_OBJS[@]} -gt 0 ]]; then
     log_info "  Plugin sub-lib unique .o files: ${#PSDPARSE_UNIQUE_OBJS[@]}"
     # Merge project base + unique plugin objects
-    libtool -static -o "$PLUGIN_LIBS_DIR/libengine_project.a" \
+    "$SYSTEM_LIBTOOL" -static -o "$PLUGIN_LIBS_DIR/libengine_project.a" \
         "$MERGE_TMPDIR/libengine_project_base.a" "${PSDPARSE_UNIQUE_OBJS[@]}"
 else
     cp "$MERGE_TMPDIR/libengine_project_base.a" "$PLUGIN_LIBS_DIR/libengine_project.a"
