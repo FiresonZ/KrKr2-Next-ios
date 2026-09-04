@@ -1,20 +1,25 @@
 # build target
 /**/build/
+!/build/
 /**/out/
 /**/bin/
 vcpkg_installed/
 
+# IDE / tooling
 .idea/
 .vscode/
 .vs/
 .gradle/
 .act/
 .devtools
-*.md
-*.lock
-/stats_server
 local.properties
+stats_server
 
+# Transient uploads / tool artifacts (not part of the repo)
+.uploads/
+.trae-html-share-packages/
+
+*.lock
 java_pid*.hprof
 .DS_Store
 *.pdb
